@@ -16,14 +16,25 @@ package com.example.android.inventory;
  * limitations under the License.
  */
 
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.CursorAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.example.android.inventory.data.BookContract;
 import com.example.android.inventory.data.BookContract.BookEntry;
 /**
  * {@link BookCursorAdapter} is an adapter for a list or grid view
@@ -31,12 +42,14 @@ import com.example.android.inventory.data.BookContract.BookEntry;
  * how to create list items for each row of pet data in the {@link Cursor}.
  */
 public class BookCursorAdapter extends CursorAdapter {
+
     /**
      * Constructs a new {@link BookCursorAdapter}.
      *
      * @param context The context
      * @param c       The cursor from which to get the data.
      */
+
     public BookCursorAdapter(Context context, Cursor c) {
         super(context, c, 0 /* flags */);
     }
@@ -65,29 +78,61 @@ public class BookCursorAdapter extends CursorAdapter {
      *                correct row.
      */
     @Override
-    public void bindView(View view, Context context, Cursor cursor) {
+    public void bindView(View view, final Context context,  final Cursor cursor) {
         // Find individual views that we want to modify in the list item layout
         TextView nameTextView = (TextView) view.findViewById(R.id.name);
         TextView priceTextView = (TextView) view.findViewById(R.id.price);
-        TextView quantityTextView = (TextView) view.findViewById(R.id.quantity);
+        final TextView quantityTextView = (TextView) view.findViewById(R.id.quantity);
+        final Button saleButton = (Button) view.findViewById(R.id.sale_button);
+        saleButton.setText(R.string.sale_button);
         // Find the columns of book attributes that we're interested in
         int nameColumnIndex = cursor.getColumnIndex(BookEntry.COLUMN_BOOK_NAME);
         int priceColumnIndex = cursor.getColumnIndex(BookEntry.COLUMN_BOOK_PRICE);
         int quantityColumnIndex = cursor.getColumnIndex(BookEntry.COLUMN_BOOK_QUANTITY);
+
         // Read the book attributes from the Cursor for the current book
         String bookName = cursor.getString(nameColumnIndex);
+        final String bookQuantity = cursor.getString(quantityColumnIndex);
         String bookPrice = cursor.getString(priceColumnIndex);
-        String bookQuantity = cursor.getString(quantityColumnIndex);
 
-        // If the pet breed is empty string or null, then use some default text
-        // that says "Unknown breed", so the TextView isn't blank.
-        if (TextUtils.isEmpty(bookName)) {
-            bookName = context.getString(R.string.unknown_breed);
-        }
-
-        // Update the TextViews with the attributes for the current pet
+        /* Update the textViews with the attibutes for the current product */
         nameTextView.setText(bookName);
-        priceTextView.setText(bookPrice);
+        priceTextView.setText("$ " + bookPrice);
         quantityTextView.setText(bookQuantity);
+
+        /* OnClickListener for saleButton */
+        saleButton.setOnClickListener(new View.OnClickListener() {
+
+            int rowId = cursor.getInt(cursor.getColumnIndex(BookEntry._ID));
+            Uri content = Uri.withAppendedPath(BookEntry.CONTENT_URI, Integer.toString(rowId));
+
+            @Override
+            public void onClick(View view) {
+
+                saleButton.setEnabled(true);
+                String previousQuantity = bookQuantity;
+                int updatedQuantity = Integer.parseInt(previousQuantity);
+                if(updatedQuantity < 1){
+                    Toast.makeText(context,"Product Sold Out",Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    updatedQuantity = updatedQuantity - 1;
+                    ContentValues values =new ContentValues();
+                    values.put(BookEntry.COLUMN_BOOK_QUANTITY, updatedQuantity);
+                    int rowsUpdate = context.getContentResolver().update(content, values, null, null);
+
+                    Log.v("BookAdapter","Values of _ID (2)" + rowId);
+
+                    //int rowsUpdate = context.getContentResolver().update(uri, values, null,null);
+                    if (rowsUpdate!=0){
+                        Toast.makeText(context,"Update was successful",Toast.LENGTH_SHORT).show();
+                    }
+                    else{
+                        Toast.makeText(context,"Update is Unsuccessful",Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+
+        });
     }
 }

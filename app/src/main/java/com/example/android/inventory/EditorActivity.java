@@ -35,6 +35,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -50,7 +51,7 @@ import com.example.android.inventory.data.BookDbHelper;
 public class EditorActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor> {
 
-    int nQuantity = 0;
+    int nQuantity;
     /**
      * Identifier for the pet data loader
      */
@@ -111,7 +112,7 @@ public class EditorActivity extends AppCompatActivity implements
         // If the intent DOES NOT contain a book content URI, then we know that we are
         // creating a new book.
         if (mCurrentBookUri == null) {
-            // This is a new pet, so change the app bar to say "Add a Pet"
+            // This is a new book, so change the app bar to say "Add a Book"
             setTitle(getString(R.string.editor_activity_title_new_book));
 
             // Invalidate the options menu, so the "Delete" menu option can be hidden.
@@ -192,8 +193,6 @@ public class EditorActivity extends AppCompatActivity implements
      */
     private void saveBook() {
 
-
-        //  I parse to intger
         String nameString = mNameEditText.getText().toString().trim();
         String priceString = mPriceEditText.getText().toString().trim();
         String quantityString = mQuantityEditText.getText().toString().trim();
@@ -215,25 +214,38 @@ public class EditorActivity extends AppCompatActivity implements
         values.put(BookEntry.COLUMN_BOOK_NAME, nameString);
         values.put(BookEntry.COLUMN_BOOK_QUANTITY, quantityString);
         values.put(BookEntry.COLUMN_BOOK_SUPPLIER_NAME, supplierNameString);
-        values.put(BookEntry.COLUMN_BOOK_SUPPLIER_PHONE_NUMBER, supplierNameString);
+        values.put(BookEntry.COLUMN_BOOK_SUPPLIER_PHONE_NUMBER, supplierPhoneString);
         values.put(BookEntry.COLUMN_BOOK_GENDER, mGender);
 
-        // If the price is not provided by the user, don't try to parse the string into an
-        // integer value. Use 0 by default.
-        int price = 0;
-        if (!TextUtils.isEmpty(priceString)) {
-            price = Integer.parseInt(priceString);
+
+        // If any of the values is not provided, return withoud inserting
+        if ((TextUtils.isEmpty(priceString)) ||  (TextUtils.isEmpty(nameString)) || (TextUtils.isEmpty(supplierNameString)) ||
+                (TextUtils.isEmpty(supplierPhoneString))) {
+            Toast.makeText(this, getString(R.string.editor_insert_book_invalid),
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Validate price
+        int price = Integer.parseInt(priceString);
+        if (price <= 0){
+
+            Toast.makeText(this, getString(R.string.editor_insert_book_price_invalid),
+                    Toast.LENGTH_SHORT).show();
+            return;
         }
         values.put(BookEntry.COLUMN_BOOK_PRICE, price);
 
-        // If the quantity is not provided by the user, don't try to parse the string into an
-        // integer value. Use 0 by default.
-        int quantity = 0;
-        if (!TextUtils.isEmpty(quantityString)) {
-            quantity = Integer.parseInt(quantityString);
-            nQuantity = quantity;
+        // Validate quantity
+        int quantity = Integer.parseInt(quantityString);
+        if (quantity <= 0){
+
+            Toast.makeText(this, getString(R.string.editor_insert_book_quantity_invalid),
+                    Toast.LENGTH_SHORT).show();
+            return;
         }
-        values.put(BookEntry.COLUMN_BOOK_QUANTITY, quantity);
+        values.put(BookEntry.COLUMN_BOOK_PRICE, quantity);
+
 
         // Determine if this is a new or existing pet by checking if mCurrentPetUri is null or not
         if (mCurrentBookUri == null) {
@@ -405,6 +417,7 @@ public class EditorActivity extends AppCompatActivity implements
             int price = cursor.getInt(priceColumnIndex);
             int quantity = cursor.getInt(quantityColumnIndex);
             int gender = cursor.getInt(genderColumnIndex);
+            nQuantity = quantity;
 
             // Update the views on the screen with the values from the database
             mNameEditText.setText(name);
@@ -481,7 +494,7 @@ public class EditorActivity extends AppCompatActivity implements
         builder.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 // User clicked the "Delete" button, so delete the pet.
-                deletePet();
+                deleteBook();
             }
         });
         builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -500,7 +513,7 @@ public class EditorActivity extends AppCompatActivity implements
     /**
      * Perform the deletion of the pet in the database.
      */
-    private void deletePet() {
+    private void deleteBook() {
         // Only perform the delete if this is an existing pet.
         if (mCurrentBookUri != null) {
             // Call the ContentResolver to delete the pet at the given content URI.
@@ -510,11 +523,11 @@ public class EditorActivity extends AppCompatActivity implements
             // Show a toast message depending on whether or not the delete was successful.
             if (rowsDeleted == 0) {
                 // If no rows were deleted, then there was an error with the delete.
-                Toast.makeText(this, getString(R.string.editor_delete_pet_failed),
+                Toast.makeText(this, getString(R.string.editor_delete_book_failed),
                         Toast.LENGTH_SHORT).show();
             } else {
                 // Otherwise, the delete was successful and we can display a toast.
-                Toast.makeText(this, getString(R.string.editor_delete_pet_successful),
+                Toast.makeText(this, getString(R.string.editor_delete_book_successful),
                         Toast.LENGTH_SHORT).show();
             }
         }
@@ -525,12 +538,9 @@ public class EditorActivity extends AppCompatActivity implements
 
     /**
      * This method is called when the + button is clicked.
-     */
+    */
     public void increment(View view) {
-        if(nQuantity>=100){
-            Toast.makeText(this, "No more than 100 cups of coffeee", Toast.LENGTH_SHORT).show();
-            return;
-        }
+
         nQuantity = nQuantity +1;
         displayQuantity(nQuantity);
 
@@ -538,10 +548,10 @@ public class EditorActivity extends AppCompatActivity implements
 
     /**
      * This method is called when the - button is clicked.
-     */
+    */
     public void decrement(View view) {
-        if(nQuantity<2){
-            Toast.makeText(this, "No less than 1 cup of coffeee", Toast.LENGTH_SHORT).show();
+        if(nQuantity<1){
+            Toast.makeText(this, "No less than 0 units", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -552,9 +562,28 @@ public class EditorActivity extends AppCompatActivity implements
 
     /**
      * This method displays the given quantity value on the screen.
-     */
+    */
     private void displayQuantity(int number) {
-//        TextView quantityTextView = (TextView) findViewById(R.id.edit_book_quantity);
-        mQuantityTextView.setText("" + number);
+        TextView quantityTextView = (TextView) findViewById(R.id.edit_book_quantity);
+        quantityTextView.setText("" + number);
     }
+
+    /**
+     * This method is called when the order button is clicked.
+     */
+    public void submitOrder(View view) {
+
+        EditText supplierPhoneField = (EditText) findViewById(R.id.edit_book_supplier_phone);
+        String supplierPhone = supplierPhoneField.getText().toString();
+
+
+        Intent intent = new Intent(Intent.ACTION_DIAL);
+        intent.setData(Uri.parse("tel:" + supplierPhone));
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(intent);
+        }
+
+
+    }
+
 }

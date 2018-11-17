@@ -34,6 +34,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.CursorAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.example.android.inventory.data.BookContract.BookEntry;
 
@@ -102,7 +103,7 @@ public class CatalogActivity extends AppCompatActivity implements
      */
     private void insertBook() {
         // Create a ContentValues object where column names are the keys,
-        // and Toto's pet attributes are the values.
+        // and 101's pet attributes are the values.
         ContentValues values = new ContentValues();
         values.put(BookEntry.COLUMN_BOOK_NAME, "101 ANDROID");
         values.put(BookEntry.COLUMN_BOOK_PRICE, 10);
@@ -188,5 +189,6 @@ public class CatalogActivity extends AppCompatActivity implements
         // Callback called when the data needs to be deleted
         mCursorAdapter.swapCursor(null);
     }
+
 }
 

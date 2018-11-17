@@ -51,7 +51,7 @@ public final class BookContract {
         // Table name
         public static final String TABLE_NAME = "books";
 
-        // Column with the foreign key into the pet table.
+        // Column with the foreign key into the book table.
         public static final String _ID = BaseColumns._ID;
 
 
