@@ -85,6 +85,10 @@ public class BookCursorAdapter extends CursorAdapter {
         final TextView quantityTextView = (TextView) view.findViewById(R.id.quantity);
         final Button saleButton = (Button) view.findViewById(R.id.sale_button);
         saleButton.setText(R.string.sale_button);
+
+        final Button buyButton = (Button) view.findViewById(R.id.buy_button);
+        buyButton.setText(R.string.buy_button);
+
         // Find the columns of book attributes that we're interested in
         int nameColumnIndex = cursor.getColumnIndex(BookEntry.COLUMN_BOOK_NAME);
         int priceColumnIndex = cursor.getColumnIndex(BookEntry.COLUMN_BOOK_PRICE);
@@ -112,11 +116,42 @@ public class BookCursorAdapter extends CursorAdapter {
                 saleButton.setEnabled(true);
                 String previousQuantity = bookQuantity;
                 int updatedQuantity = Integer.parseInt(previousQuantity);
+
+                updatedQuantity = updatedQuantity - 1;
+                ContentValues values = new ContentValues();
+                values.put(BookEntry.COLUMN_BOOK_QUANTITY, updatedQuantity);
+                int rowsUpdate = context.getContentResolver().update(content, values, null, null);
+
+                Log.v("BookAdapter", "Values of _ID (2)" + rowId);
+
+                //int rowsUpdate = context.getContentResolver().update(uri, values, null,null);
+                if (rowsUpdate != 0) {
+                    Toast.makeText(context, "Update was successful", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(context, "Update is Unsuccessful", Toast.LENGTH_SHORT).show();
+                }
+
+            }
+
+        });
+
+        /* OnClickListener for buyButton */
+        buyButton.setOnClickListener(new View.OnClickListener() {
+
+            int rowId = cursor.getInt(cursor.getColumnIndex(BookEntry._ID));
+            Uri content = Uri.withAppendedPath(BookEntry.CONTENT_URI, Integer.toString(rowId));
+
+            @Override
+            public void onClick(View view) {
+
+                saleButton.setEnabled(true);
+                String previousQuantity = bookQuantity;
+                int updatedQuantity = Integer.parseInt(previousQuantity);
                 if(updatedQuantity < 1){
                     Toast.makeText(context,"Product Sold Out",Toast.LENGTH_SHORT).show();
                 }
                 else {
-                    updatedQuantity = updatedQuantity - 1;
+                    updatedQuantity = updatedQuantity + 10;
                     ContentValues values =new ContentValues();
                     values.put(BookEntry.COLUMN_BOOK_QUANTITY, updatedQuantity);
                     int rowsUpdate = context.getContentResolver().update(content, values, null, null);
@@ -134,5 +169,6 @@ public class BookCursorAdapter extends CursorAdapter {
             }
 
         });
+
     }
 }

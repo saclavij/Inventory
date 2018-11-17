@@ -131,7 +131,10 @@
     <string name="sale_button">Sale</string>
 
     <!-- Subtitle text for the empty view that prompts the user to add a pet [CHAR LIMIT=50] -->
-    <string name="order_button">Order</string>
+    <string name="buy_button">Buy 10 units</string>
+
+    <!-- Subtitle text for the empty view that prompts the user to add a pet [CHAR LIMIT=50] -->
+    <string name="order_button">Call Supplier</string>
 
     <!-- Label for the pet's breed if the breed is unknown [CHAR LIMIT=20] -->
     <string name="unknown_breed">Unknown breed</string>

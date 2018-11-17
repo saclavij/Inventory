@@ -76,5 +76,13 @@ android:padding="@dimen/activity_margin">
             android:text="@string/sale_button"
             android:textColor="@color/colorPrimary" />
 
+        <Button
+            android:id="@+id/buy_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:focusable="false"
+            android:text="@string/buy_button"
+            android:textColor="@color/colorPrimary" />
+
     </LinearLayout>
 </LinearLayout>
